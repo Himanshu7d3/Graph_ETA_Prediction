@@ -1,0 +1,68 @@
+
+╔══════════════════════════════════════════════════════════════╗
+║      NETWORK OPERATIONS STRATEGY MEMO — DELHIVERY            ║
+║      Graph-Based ETA Intelligence — Key Findings             ║
+╚══════════════════════════════════════════════════════════════╝
+
+RE:   Bottleneck Hubs, Corridor Interventions & Revenue Impact
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXECUTIVE SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OSRM underestimates delivery time on over 98% of corridors.
+XGBoost + Graph is the best-performing model, with MAE 37.7 min.
+High-Risk Hubs identified: 23 unique hubs flagged.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOP 5 BOTTLENECK HUBS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. IND000000ACB  [High Risk]
+   SLA breach trips : 728 (4.5% of network total)
+   Connections      : 101 in / 108 out
+   Chokepoint score : 0.2338
+   Revenue at risk  : Rs 364,000
+2. IND421302AAG  [High Risk]
+   SLA breach trips : 635 (3.9% of network total)
+   Connections      : 67 in / 81 out
+   Chokepoint score : 0.0456
+   Revenue at risk  : Rs 317,500
+3. IND562132AAA  [High Risk]
+   SLA breach trips : 495 (3.0% of network total)
+   Connections      : 78 in / 86 out
+   Chokepoint score : 0.1232
+   Revenue at risk  : Rs 247,500
+4. IND560099AAB  [High Risk]
+   SLA breach trips : 308 (1.9% of network total)
+   Connections      : 30 in / 41 out
+   Chokepoint score : 0.0047
+   Revenue at risk  : Rs 154,000
+5. IND411033AAA  [High Risk]
+   SLA breach trips : 289 (1.8% of network total)
+   Connections      : 38 in / 43 out
+   Chokepoint score : 0.0491
+   Revenue at risk  : Rs 144,500
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RECOMMENDED INTERVENTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. FACILITY UPGRADE at IND000000ACB — highest breach volume + centrality.
+2. PARALLEL ROUTE out of IND421302AAG — high delay on evening shifts.
+3. ROUTE TYPE SWITCH at IND562132AAA — shift Carting trips to FTL.
+4. NIGHT SHIFT CAPACITY across all top-5 hubs.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+QUANTIFIED IMPACT: IF TOP 3 HUBS ARE UPGRADED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Breaches recovered           : 134
+  Reduction in late deliveries : 0.1%
+  Revenue recovered            : Rs 67,490
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODEL PERFORMANCE COMPARISON
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  RF Baseline            : MAE 47.4 min  
+  CatBoost Baseline      : MAE 44.4 min  
+  XGBoost Baseline       : MAE 41.5 min  
+  RF + Graph Embeddings  : MAE 44.4 min  
+  CatBoost + Graph Embeds: MAE 40.2 min  
+  XGBoost + Graph Embeds : MAE 37.7 min  
