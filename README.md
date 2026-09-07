@@ -2,14 +2,18 @@
 
 > Predicting delivery ETAs using graph analytics and network intelligence for smarter logistics operations.
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://himanshu-mandal-7d3.streamlit.app/)
+**Live Web Application:** [himanshu-mandal-7d3.streamlit.app](https://himanshu-mandal-7d3.streamlit.app/)
+
 ---
 
 ## Table of Contents
 
 - [Overview](#overview)
+- [Live Demo](#live-demo)
 - [Project Structure](#project-structure)
 - [Pipeline Architecture](#pipeline-architecture)
-- [Models](#models)
+- [Models & Performance](#models--performance)
 - [Key Outputs](#key-outputs)
 - [Getting Started](#getting-started)
 - [Running the App](#running-the-app)
@@ -19,15 +23,25 @@
 
 ## Overview
 
-Standard ETA engines (like OSRM) estimate delivery time based purely on road distance and speed — they ignore real-world network congestion, hub inefficiencies, and historical delay patterns.
+Standard ETA engines (such as OSRM) estimate delivery times based purely on static road distance and speed assumptions — ignoring real-world network chokepoints, hub handling inefficiencies, and historical delay patterns.
 
-This project builds a **graph-based intelligence layer** on top of raw delivery data to:
+This project builds a **graph-based intelligence layer** on top of raw delivery trip data to:
 
-- Model the entire logistics network as a directed graph (hubs as nodes, corridors as edges)
-- Compute structural hub metrics: betweenness centrality, PageRank, clustering coefficient
-- Generate 20-dimensional graph embeddings per hub encoding delay behaviour and network position
-- Train and compare four ML models — with and without graph features — to predict actual delivery time
-- Identify bottleneck hubs, SLA breach corridors, and quantify revenue at risk
+- Model the logistics network as a directed graph (hubs as nodes, corridors as edges).
+- Compute structural network metrics: betweenness centrality, PageRank, clustering coefficient, and degree distributions.
+- Generate **16-dimensional graph embeddings per hub** (32 dimensions total per trip leg encoding source and destination hub topology and historical delay profiles).
+- Train and compare **seven models** across baseline and graph-enhanced configurations (OSRM Baseline, Random Forest, CatBoost, and XGBoost).
+- Identify bottleneck hubs, detect SLA breach corridors, and quantify recoverable revenue at risk.
+
+---
+
+## Live Demo
+
+Explore the interactive dashboard deployed on Streamlit Cloud:
+
+👉 **[Launch Streamlit Dashboard](https://himanshu-mandal-7d3.streamlit.app/)**
+
+The application enables you to inspect model benchmarks, audit high-risk bottleneck hubs and corridors, assess revenue at risk, review the automated strategy memo, and run real-time graph-enhanced ETA predictions.
 
 ---
 
@@ -37,23 +51,35 @@ This project builds a **graph-based intelligence layer** on top of raw delivery 
 Graph_ETA_Prediction/
 │
 ├── Dataset/
-│   └── delivery_data.csv               # Raw delivery trip data
+│   └── delivery_data.csv               # Raw delivery trip dataset
 │
-├──plots/                               #all 8 chart
+├── plots/                              # Generated visualization charts (9 plots)
+│   ├── bottleneck_hubs.png             # Top 10 bottleneck hubs by SLA breach & centrality
+│   ├── cb_graph_importance.png         # CatBoost + Graph feature importance
+│   ├── delay_analysis.png              # Delay ratio distributions by route type & time of day
+│   ├── ftl_carting_tradeoff.png        # FTL vs Carting delay comparison across risk tiers
+│   ├── model_comparison.png            # 7-model performance comparison (MAE & Acc@15%)
+│   ├── network_graph.png               # Network topology visualization of top 50 hubs
+│   ├── rf_graph_importance.png         # Random Forest + Graph feature importance
+│   ├── xgb_baseline_importance.png     # XGBoost baseline feature importance
+│   └── xgb_graph_importance.png        # XGBoost + Graph grouped feature importance
 │
-├── app_data/                           # Auto-generated after pipeline run
-│   ├── audit_df.csv                    # Hub-level audit with risk tiers
-│   ├── corridors_df.csv                # Corridor-level delay stats
-│   ├── top_breach_corridors.csv        # Top 20 chronic delay corridors
-│   ├── revenue_risk.csv                # Revenue at risk by segment
-│   ├── results.pkl                     # All model metrics and memo
-│   ├── xgb_graph_model.pkl             # Best trained model
+├── app_data/                           # Pipeline outputs consumed by Streamlit app
+│   ├── audit_df.csv                    # Hub-level audit with risk tier classifications
+│   ├── corridors_df.csv                # Corridor-level delay statistics
+│   ├── top_breach_corridors.csv        # Top chronic delay corridors
+│   ├── revenue_risk.csv                # Revenue at risk segmented by hub profile & route type
+│   ├── results.pkl                     # Evaluation metrics, recovery numbers, and memo text
+│   ├── rf_graph_model.pkl              # Trained Random Forest + Graph model
+│   ├── cb_graph_model.pkl              # Trained CatBoost + Graph model
+│   ├── xgb_graph_model.pkl             # Trained XGBoost + Graph model (Best model)
 │   ├── enhanced_features.pkl           # Feature list for inference
-│   ├── embeddings.pkl                  # Hub graph embeddings
+│   ├── embeddings.pkl                  # 16-dim hub graph embeddings dictionary
 │   └── le_time.pkl                     # Time-of-day label encoder
 │
-├── Graph_ETA_Prediction_Full_Pipeline.ipynb   # Main analysis notebook
-├── App.py                                     # Streamlit dashboard
+├── Graph_ETA_Prediction_Full_Pipeline.ipynb   # End-to-end data, graph & ML pipeline
+├── App.py                                     # Streamlit interactive web dashboard
+├── strategy_memo.txt                          # Auto-generated operations strategy memo
 └── requirements.txt                           # Python dependencies
 ```
 
@@ -62,88 +88,111 @@ Graph_ETA_Prediction/
 ## Pipeline Architecture
 
 ```
-Raw CSV
-   │
-   ▼
-Data Cleaning & Time Feature Extraction
-   │
-   ▼
-Trip Leg Aggregation → Corridor Stats (delay ratio, p90, volume)
-   │
-   ▼
+Raw Delivery CSV
+       │
+       ▼
+Data Cleaning & Temporal Feature Engineering
+       │
+       ▼
+Trip Leg Aggregation → Corridor Delay Statistics (median, p90, trip volume)
+       │
+       ▼
 Directed Graph Construction (NetworkX)
-   │
-   ▼
-Graph Metrics (betweenness, PageRank, clustering, degree)
-   │
-   ▼
-Hub Risk Audit → SLA Breach Detection → Revenue Impact
-   │
-   ▼
-32-dim Graph Embeddings per Hub
-   │
-   ▼
-ML Training (RF / XGBoost × Baseline / Graph-Enhanced)
-   │
-   ▼
-Model Comparison + Business Recommendations + Strategy Memo
+       │
+       ▼
+Graph Metrics (Betweenness Centrality, PageRank, Clustering Coefficient, Degree)
+       │
+       ▼
+Hub Risk Audit → SLA Breach Identification → Revenue Impact Quantification
+       │
+       ▼
+16-dim Graph Embeddings per Hub (32-dim Source + Destination vector)
+       │
+       ▼
+ML Training & Comparison (OSRM vs. RF / CatBoost / XGBoost × Baseline vs. Graph)
+       │
+       ▼
+Model Evaluation (MAE, R², Acc@15%) + Streamlit App + Strategy Memo
 ```
 
 ---
 
-## Models
+## Models & Performance
 
-Four models are trained and compared on **MAE** (Mean Absolute Error in minutes) and **15%-Accuracy** (% of predictions within 15% of actual time):
+All models were evaluated on an independent 20% test split using Mean Absolute Error (**MAE** in minutes), Coefficient of Determination (**$R^2$**), and Accuracy within 15% tolerance (**Acc@15%**):
 
-| Model | Features Used |
-|---|---|
-| Random Forest Baseline | OSRM time, distance, route type, time features |
-| XGBoost Baseline | Same as above |
-| Random Forest + Graph | Baseline + 20-dim source & destination hub embeddings |
-| XGBoost + Graph | Same graph-enhanced feature set |
+| Model | Features Used | MAE (min) ↓ | $R^2$ Score ↑ | 15%-Accuracy (%) ↑ |
+|---|---|:---:|:---:|:---:|
+| **OSRM Baseline** | Pure distance & static speed heuristic | 201.90 | 0.6386 | 4.3% |
+| **Random Forest Baseline** | Operational & time features (16 features) | 47.40 | 0.9772 | 47.1% |
+| **CatBoost Baseline** | Operational & time features (16 features) | 44.38 | 0.9802 | 49.5% |
+| **XGBoost Baseline** | Operational & time features (16 features) | 41.51 | 0.9812 | 54.9% |
+| **Random Forest + Graph** | Baseline + 32-dim source & dest hub embeddings | 44.43 | 0.9805 | 48.8% |
+| **CatBoost + Graph** | Baseline + 32-dim source & dest hub embeddings | 40.16 | 0.9837 | 55.1% |
+| **XGBoost + Graph ⭐** | Baseline + 32-dim source & dest hub embeddings | **37.74** | **0.9835** | **61.4%** |
 
-Graph embeddings encode: betweenness centrality, PageRank, in/out degree, clustering coefficient, outbound/inbound delay mean, max, std, p90, and interaction terms.
+### Feature Details
+
+* **Baseline Features (16 features):** `osrm_time`, `osrm_distance`, `segment_osrm_time`, `segment_osrm_distance`, `actual_distance_to_destination`, `source_center_enc`, `destination_center_enc`, `route_type_FTL`, `time_of_day_encoded`, `is_cutoff`, `cutoff_factor`, `day`, `month`, `weekday`, `od_hour`, `od_weekday`.
+* **Graph Embeddings (16 dims per hub, 32 dims total per trip leg):**
+  * *Topological metrics (6 dims):* Normalized betweenness centrality, normalized in-degree, normalized out-degree, clustering coefficient, normalized PageRank, out/in degree ratio.
+  * *Outbound delay profile (5 dims):* Mean delay ratio, max delay ratio, std delay ratio, trip count, p90 delay ratio.
+  * *Inbound delay profile (5 dims):* Mean delay ratio, max delay ratio, std delay ratio, trip count, p90 delay ratio.
 
 ---
 
 ## Key Outputs
 
-| File | Description |
+| Output File | Description |
 |---|---|
-| `bottleneck_hubs.png` | Top 10 hubs by SLA breach volume and centrality |
-| `network_graph.png` | Network visualization of top 50 hubs |
-| `delay_analysis.png` | Delay ratio by route type and time of day |
-| `model_comparison.png` | MAE and 15%-accuracy across all four models |
-| `xgb_graph_importance.png` | Grouped feature importance for best model |
-| `ftl_carting_tradeoff.png` | FTL vs Carting delay comparison by risk tier |
-| `strategy_memo.txt` | Auto-generated ops strategy memo with findings |
+| `plots/bottleneck_hubs.png` | Top 10 hubs by SLA breach trip volume and centrality |
+| `plots/network_graph.png` | Network graph topology visualization of top 50 hubs |
+| `plots/delay_analysis.png` | Delay ratio distribution by route type and time of day |
+| `plots/model_comparison.png` | Side-by-side MAE and Acc@15% comparison across all 7 models |
+| `plots/xgb_baseline_importance.png` | Feature importance for the XGBoost baseline model |
+| `plots/rf_graph_importance.png` | Feature importance for Random Forest + Graph model |
+| `plots/cb_graph_importance.png` | Feature importance for CatBoost + Graph model |
+| `plots/xgb_graph_importance.png` | Grouped feature importance for the best XGBoost + Graph model |
+| `plots/ftl_carting_tradeoff.png` | FTL vs. Carting delay comparison segmented by hub risk tier |
+| `strategy_memo.txt` | Automated executive strategy memo with bottleneck analysis & intervention ROI |
 
 ---
 
 ## Getting Started
 
-**1. Clone the repository**
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/Graph_ETA_Prediction.git
+git clone https://github.com/Himanshu7d3/Graph_ETA_Prediction.git
 cd Graph_ETA_Prediction
 ```
 
-**2. Install dependencies**
+### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**4. Run the notebook**
+### 3. Run the analysis notebook
 
-Open and run all cells in `Graph_ETA_Prediction_Full_Pipeline.ipynb` top to bottom. All outputs, models, and the strategy memo will be saved automatically.
+Open and run all cells in `Graph_ETA_Prediction_Full_Pipeline.ipynb` top to bottom. This processes the raw dataset, builds the graph embeddings, trains the models, and populates `app_data/` and `plots/`.
+
+### 4. Run the Streamlit app locally
+
+```bash
+streamlit run App.py
+```
 
 ---
 
 ## Running the App
 
-Once the notebook has been run and `app_data/` is populated:
+### Online Deployed App
+Access the live deployed version directly in your browser:
+🔗 **[himanshu-mandal-7d3.streamlit.app](https://himanshu-mandal-7d3.streamlit.app/)**
+
+### Local Streamlit App
+Once the notebook has run and populated `app_data/`:
 
 ```bash
 streamlit run App.py
@@ -155,10 +204,11 @@ streamlit run App.py
 
 | Library | Purpose |
 |---|---|
-| `pandas` | Data loading, cleaning, aggregation |
-| `numpy` | Numerical operations and embedding math |
-| `networkx` | Graph construction and centrality metrics |
-| `scikit-learn` | Random Forest, Decision Tree, preprocessing, evaluation |
-| `xgboost` | Gradient boosting models |
-| `matplotlib` | All charts and network visualizations |
-| `streamlit` | Interactive dashboard (`App.py`) |
+| `pandas` | Data loading, cleaning, manipulation, and aggregations |
+| `numpy` | Numerical operations, vector math, and embedding construction |
+| `networkx` | Directed graph construction and centrality metric computations |
+| `scikit-learn` | Random Forest models, Decision Trees, preprocessing, and evaluation metrics |
+| `xgboost` | Gradient boosted trees for baseline and graph-enhanced ETA models |
+| `catboost` | Gradient boosting regressor with categorical handling |
+| `matplotlib` | Visualizations, feature importance plots, and network figures |
+| `streamlit` | Interactive operational web application ([`App.py`](App.py)) |
