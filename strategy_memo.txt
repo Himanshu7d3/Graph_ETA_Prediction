@@ -10,7 +10,7 @@ RE:   Bottleneck Hubs, Corridor Interventions & Revenue Impact
 EXECUTIVE SUMMARY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 OSRM underestimates delivery time on over 98% of corridors.
-XGBoost + Graph is the best-performing model, with MAE 40.4 min.
+XGBoost + Graph is the best-performing model, with Test MAE 40.4 min.
 High-Risk Hubs identified: 171 unique hubs flagged.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -58,7 +58,7 @@ QUANTIFIED IMPACT: IF TOP 5 BOTTLENECK HUBS ARE UPGRADED
   Revenue recovered            : Rs 232,820
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-MODEL PERFORMANCE COMPARISON
+MODEL PERFORMANCE COMPARISON (TEST SET — 80/10/10 SPLIT)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   RF Baseline            : MAE 48.0 min  
   CatBoost Baseline      : MAE 46.5 min  

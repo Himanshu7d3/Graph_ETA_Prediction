@@ -244,13 +244,6 @@ if page == " Model Comparison":
     cb_graph_acc  = results.get("cb_graph_acc15", 0.0)
     xgb_graph_acc = results.get("xgb_graph_acc15", 0.0)
 
-    rf_r2         = results.get("rf_r2", 0.0)
-    cb_r2         = results.get("cb_r2", 0.0)
-    xgb_r2        = results.get("xgb_r2", 0.0)
-    rf_graph_r2   = results.get("rf_graph_r2", 0.0)
-    cb_graph_r2   = results.get("cb_graph_r2", 0.0)
-    xgb_graph_r2  = results.get("xgb_graph_r2", 0.0)
-
     if prediction_meta is not None:
         osrm_mae = prediction_meta["osrm_mae"]
         osrm_r2 = prediction_meta["osrm_r2"]
@@ -284,12 +277,6 @@ if page == " Model Comparison":
         osrm_acc15 if osrm_acc15 is not None else np.nan,
         rf_acc, cb_acc, xgb_acc,
         rf_graph_acc, cb_graph_acc, xgb_graph_acc,
-    ]
-
-    r2_vals = [
-        osrm_r2 if osrm_r2 is not None else np.nan,
-        rf_r2, cb_r2, xgb_r2,
-        rf_graph_r2, cb_graph_r2, xgb_graph_r2,
     ]
 
     best_graph_model = results.get("best_graph_model", "XGBoost + Graph")
@@ -406,10 +393,9 @@ if page == " Model Comparison":
             "CatBoost + Graph",
             "XGBoost + Graph ⭐",
         ],
-        "MAE (min)": [round(v, 2) if np.isfinite(v) else np.nan for v in mae_vals],
-        "R² Score": [round(v, 4) if np.isfinite(v) else np.nan for v in r2_vals],
-        "15%-Accuracy (%)": [round(v, 2) if np.isfinite(v) else np.nan for v in acc_vals],
-    })
+        "MAE (min)": mae_vals,
+        "15%-Accuracy (%)": acc_vals,
+    }).round(2)
 
     st.dataframe(
         summary,

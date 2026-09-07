@@ -118,17 +118,17 @@ Model Evaluation (MAE, R², Acc@15%) + Streamlit App + Strategy Memo
 
 ## Models & Performance
 
-All models were trained and evaluated using an **80 / 10 / 10** split (80% Train, 10% Validation for hyperparameter tuning / early stopping, and 10% Holdout Test) grouped strictly by `trip_uuid` to prevent intra-trip leakage. Model performance is evaluated on the 10% holdout test set using Mean Absolute Error (**MAE** in minutes), Coefficient of Determination (**$R^2$**), and Accuracy within 15% tolerance (**Acc@15%**):
+All models were evaluated using an **80 / 10 / 10 trip-level split** partitioned strictly by unique `trip_uuid` (Train: 11,853 trips / 115,939 rows; Validation: 1,482 trips / 14,606 rows; Test: 1,482 trips / 14,322 rows) to guarantee zero cross-scan data leakage. Evaluated metrics include Mean Absolute Error (**MAE** in minutes), Coefficient of Determination (**$R^2$**), and Accuracy within 15% tolerance (**Acc@15%**):
 
-| Model | Features Used | MAE (min) ↓ | $R^2$ Score ↑ | 15%-Accuracy (%) ↑ |
-|---|---|:---:|:---:|:---:|
-| **OSRM Baseline** | Pure distance & static speed heuristic | 199.99 | 0.6455 | 4.2% |
-| **Random Forest Baseline** | Clean pre-dispatch features (13 features) | 47.95 | 0.9759 | 46.7% |
-| **CatBoost Baseline** | Clean pre-dispatch features (13 features) | 46.48 | 0.9792 | 48.3% |
-| **XGBoost Baseline** | Clean pre-dispatch features (13 features) | 44.62 | 0.9786 | 52.8% |
-| **Random Forest + Graph** | Baseline + 32-dim source & dest hub embeddings | 45.10 | 0.9791 | 48.1% |
-| **CatBoost + Graph** | Baseline + 32-dim source & dest hub embeddings | 42.40 | 0.9820 | 54.7% |
-| **XGBoost + Graph ⭐** | Baseline + 32-dim source & dest hub embeddings | **40.41** | **0.9813** | **60.1%** |
+| Model | Features | Val MAE (min) ↓ | Val $R^2$ ↑ | Val Acc@15% ↑ | Test MAE (min) ↓ | Test $R^2$ ↑ | Test Acc@15% ↑ |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **OSRM Baseline** | Pure distance & static speed | 203.77 | 0.6314 | 4.3% | 199.99 | 0.6455 | 4.2% |
+| **Random Forest Baseline** | Clean pre-dispatch (13 features) | 46.48 | 0.9791 | 47.4% | 47.95 | 0.9759 | 46.7% |
+| **CatBoost Baseline** | Clean pre-dispatch (13 features) | 44.40 | 0.9802 | 49.5% | 46.48 | 0.9792 | 48.3% |
+| **XGBoost Baseline** | Clean pre-dispatch (13 features) | 40.75 | 0.9819 | 54.9% | 44.62 | 0.9786 | 52.8% |
+| **Random Forest + Graph** | Baseline + 32-dim hub embeddings | 42.88 | 0.9824 | 49.9% | 45.10 | 0.9791 | 48.1% |
+| **CatBoost + Graph** | Baseline + 32-dim hub embeddings | 38.43 | 0.9848 | 56.3% | 42.40 | 0.9820 | 54.7% |
+| **XGBoost + Graph ⭐** | Baseline + 32-dim hub embeddings | **37.50** | **0.9838** | **61.2%** | **40.41** | **0.9813** | **60.1%** |
 
 ### Feature Details
 
