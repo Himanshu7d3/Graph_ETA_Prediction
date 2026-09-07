@@ -1,5 +1,5 @@
 risk_profile,route_type_str,total_trips,breach_trips,breach_rate_%,revenue_at_risk_Rs
-High Risk Hub,Carting,11571,10438,90.2,5219000
-High Risk Hub,FTL,60578,59651,98.5,29825500
-Low Risk Hub,Carting,33636,30541,90.8,15270500
-Low Risk Hub,FTL,39082,36272,92.8,18136000
+High Risk Hub,Carting,17496,15843,90.6,7921500
+High Risk Hub,FTL,61620,60377,98.0,30188500
+Low Risk Hub,Carting,18726,17041,91.0,8520500
+Low Risk Hub,FTL,18097,16431,90.8,8215500

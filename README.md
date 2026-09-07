@@ -2,7 +2,6 @@
 
 > Predicting delivery ETAs using graph analytics and network intelligence for smarter logistics operations.
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://himanshu-mandal-7d3.streamlit.app/)
 **Live Web Application:** [himanshu-mandal-7d3.streamlit.app](https://himanshu-mandal-7d3.streamlit.app/)
 
 ---
@@ -119,21 +118,21 @@ Model Evaluation (MAE, R², Acc@15%) + Streamlit App + Strategy Memo
 
 ## Models & Performance
 
-All models were evaluated on an independent 20% test split using Mean Absolute Error (**MAE** in minutes), Coefficient of Determination (**$R^2$**), and Accuracy within 15% tolerance (**Acc@15%**):
+All models were trained and evaluated using an **80 / 10 / 10** split (80% Train, 10% Validation for hyperparameter tuning / early stopping, and 10% Holdout Test) grouped strictly by `trip_uuid` to prevent intra-trip leakage. Model performance is evaluated on the 10% holdout test set using Mean Absolute Error (**MAE** in minutes), Coefficient of Determination (**$R^2$**), and Accuracy within 15% tolerance (**Acc@15%**):
 
 | Model | Features Used | MAE (min) ↓ | $R^2$ Score ↑ | 15%-Accuracy (%) ↑ |
 |---|---|:---:|:---:|:---:|
-| **OSRM Baseline** | Pure distance & static speed heuristic | 201.90 | 0.6386 | 4.3% |
-| **Random Forest Baseline** | Operational & time features (16 features) | 47.40 | 0.9772 | 47.1% |
-| **CatBoost Baseline** | Operational & time features (16 features) | 44.38 | 0.9802 | 49.5% |
-| **XGBoost Baseline** | Operational & time features (16 features) | 41.51 | 0.9812 | 54.9% |
-| **Random Forest + Graph** | Baseline + 32-dim source & dest hub embeddings | 44.43 | 0.9805 | 48.8% |
-| **CatBoost + Graph** | Baseline + 32-dim source & dest hub embeddings | 40.16 | 0.9837 | 55.1% |
-| **XGBoost + Graph ⭐** | Baseline + 32-dim source & dest hub embeddings | **37.74** | **0.9835** | **61.4%** |
+| **OSRM Baseline** | Pure distance & static speed heuristic | 199.99 | 0.6455 | 4.2% |
+| **Random Forest Baseline** | Clean pre-dispatch features (13 features) | 47.95 | 0.9759 | 46.7% |
+| **CatBoost Baseline** | Clean pre-dispatch features (13 features) | 46.48 | 0.9792 | 48.3% |
+| **XGBoost Baseline** | Clean pre-dispatch features (13 features) | 44.62 | 0.9786 | 52.8% |
+| **Random Forest + Graph** | Baseline + 32-dim source & dest hub embeddings | 45.10 | 0.9791 | 48.1% |
+| **CatBoost + Graph** | Baseline + 32-dim source & dest hub embeddings | 42.40 | 0.9820 | 54.7% |
+| **XGBoost + Graph ⭐** | Baseline + 32-dim source & dest hub embeddings | **40.41** | **0.9813** | **60.1%** |
 
 ### Feature Details
 
-* **Baseline Features (16 features):** `osrm_time`, `osrm_distance`, `segment_osrm_time`, `segment_osrm_distance`, `actual_distance_to_destination`, `source_center_enc`, `destination_center_enc`, `route_type_FTL`, `time_of_day_encoded`, `is_cutoff`, `cutoff_factor`, `day`, `month`, `weekday`, `od_hour`, `od_weekday`.
+* **Baseline Features (13 features):** `osrm_time`, `osrm_distance`, `segment_osrm_time`, `segment_osrm_distance`, `source_center_enc`, `destination_center_enc`, `route_type_FTL`, `time_of_day_encoded`, `day`, `month`, `weekday`, `od_hour`, `od_weekday`. *(Note: Leaky post-hoc flags `actual_distance_to_destination`, `is_cutoff`, and `cutoff_factor` were eliminated to prevent data leakage).*
 * **Graph Embeddings (16 dims per hub, 32 dims total per trip leg):**
   * *Topological metrics (6 dims):* Normalized betweenness centrality, normalized in-degree, normalized out-degree, clustering coefficient, normalized PageRank, out/in degree ratio.
   * *Outbound delay profile (5 dims):* Mean delay ratio, max delay ratio, std delay ratio, trip count, p90 delay ratio.

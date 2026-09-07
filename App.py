@@ -97,17 +97,23 @@ def load_prediction_metadata():
 
     raw["time_of_day"] = raw["trip_hour"].apply(_get_time_of_day)
 
-    # Exactly match the notebook's trip-level split.
+    # Exactly match the notebook's 80/10/10 trip-level split.
     trip_ids = raw["trip_uuid"].drop_duplicates().to_numpy()
 
-    train_trips, test_trips = train_test_split(
+    train_trips, temp_trips = train_test_split(
         trip_ids,
         test_size=0.20,
         random_state=26
     )
+    val_trips, test_trips = train_test_split(
+        temp_trips,
+        test_size=0.50,
+        random_state=26
+    )
 
     train_df = raw[raw["trip_uuid"].isin(train_trips)].copy()
-    test_df = raw[raw["trip_uuid"].isin(test_trips)].copy()
+    val_df   = raw[raw["trip_uuid"].isin(val_trips)].copy()
+    test_df  = raw[raw["trip_uuid"].isin(test_trips)].copy()
 
     # Exactly match Cell 14's train-derived integer encodings.
     src_categories = pd.Index(
@@ -187,7 +193,7 @@ if not data_ready():
     st.sidebar.error("⚠️ No data found in `app_data/`.\n\nRun the notebook first to generate data.")
     st.title(" Delhivery Graph ETA Intelligence")
     st.error("""
-    **Data not found.** Please run `notebook_fixed.ipynb` first.
+    **Data not found.** Please run `Graph_ETA_Prediction_Full_Pipeline.ipynb` first.
     
     The notebook saves pre-computed results to `app_data/` so this app loads instantly.
     """)
@@ -238,6 +244,13 @@ if page == " Model Comparison":
     cb_graph_acc  = results.get("cb_graph_acc15", 0.0)
     xgb_graph_acc = results.get("xgb_graph_acc15", 0.0)
 
+    rf_r2         = results.get("rf_r2", 0.0)
+    cb_r2         = results.get("cb_r2", 0.0)
+    xgb_r2        = results.get("xgb_r2", 0.0)
+    rf_graph_r2   = results.get("rf_graph_r2", 0.0)
+    cb_graph_r2   = results.get("cb_graph_r2", 0.0)
+    xgb_graph_r2  = results.get("xgb_graph_r2", 0.0)
+
     if prediction_meta is not None:
         osrm_mae = prediction_meta["osrm_mae"]
         osrm_r2 = prediction_meta["osrm_r2"]
@@ -271,6 +284,12 @@ if page == " Model Comparison":
         osrm_acc15 if osrm_acc15 is not None else np.nan,
         rf_acc, cb_acc, xgb_acc,
         rf_graph_acc, cb_graph_acc, xgb_graph_acc,
+    ]
+
+    r2_vals = [
+        osrm_r2 if osrm_r2 is not None else np.nan,
+        rf_r2, cb_r2, xgb_r2,
+        rf_graph_r2, cb_graph_r2, xgb_graph_r2,
     ]
 
     best_graph_model = results.get("best_graph_model", "XGBoost + Graph")
@@ -387,9 +406,10 @@ if page == " Model Comparison":
             "CatBoost + Graph",
             "XGBoost + Graph ⭐",
         ],
-        "MAE (min)": mae_vals,
-        "15%-Accuracy (%)": acc_vals,
-    }).round(2)
+        "MAE (min)": [round(v, 2) if np.isfinite(v) else np.nan for v in mae_vals],
+        "R² Score": [round(v, 4) if np.isfinite(v) else np.nan for v in r2_vals],
+        "15%-Accuracy (%)": [round(v, 2) if np.isfinite(v) else np.nan for v in acc_vals],
+    })
 
     st.dataframe(
         summary,
@@ -509,7 +529,7 @@ elif page == " Revenue at Risk":
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Total SLA Breaches",    f"{total_breaches:,}")
     c2.metric("Breaches Recoverable",  f"{int(breaches_recovered):,}")
-    c3.metric("Late Delivery Reduction", f"{reduction_pct:.1f}%")
+    c3.metric("Late Delivery Reduction", f"{reduction_pct:.2f}%")
     c4.metric("Revenue Recoverable",   f"Rs {adj_revenue:,.0f}")
 
     st.markdown("---")
@@ -578,9 +598,6 @@ elif page == " ETA Predictor":
     with st.expander("Advanced features (optional)"):
         segment_osrm_time = st.number_input("Segment OSRM Time (min)", value=osrm_time * 0.3, step=5.0)
         segment_osrm_dist = st.number_input("Segment OSRM Distance (km)", value=osrm_dist * 0.3, step=5.0)
-        actual_dist       = st.number_input("Actual Distance to Destination (km)", value=osrm_dist, step=5.0)
-        is_cutoff         = st.checkbox("Is Cutoff Trip", value=False)
-        cutoff_factor     = st.number_input("Cutoff Factor", value=1.0, step=0.1) if is_cutoff else 1.0
         od_hour           = st.slider("OD Hour", 0, 23, 8)
         od_weekday        = st.slider("OD Weekday (0=Mon)", 0, 6, 0)
 
@@ -619,13 +636,10 @@ elif page == " ETA Predictor":
             "osrm_distance":                  osrm_dist,
             "segment_osrm_time":              segment_osrm_time,
             "segment_osrm_distance":          segment_osrm_dist,
-            "actual_distance_to_destination": actual_dist,
             "time_of_day_encoded":            tod_enc,
             "route_type_FTL":                 1 if route_type == "FTL" else 0,
-            "is_cutoff":                      int(is_cutoff),
-            "cutoff_factor":                  cutoff_factor,
-            "day":                            1,
-            "month":                          6,
+            "day":                            15,
+            "month":                          9,
             "weekday":                        od_weekday,
             "od_hour":                        od_hour,
             "od_weekday":                    od_weekday,
